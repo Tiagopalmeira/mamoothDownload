@@ -1,0 +1,38 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# VSCode settings
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# PyInstaller output
+dist/
+build/
+*.spec
+
+# Logs and temp
+*.log
+*.tmp
+*.bak
+
+# Downloads
+*.mp4
+*.mp3
+
+# Environment variables
+.env

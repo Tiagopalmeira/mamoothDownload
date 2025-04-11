@@ -1,0 +1,5 @@
+yt-dlp
+kivy
+requests
+kivymd
+rich
