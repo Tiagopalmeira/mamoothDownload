@@ -39,7 +39,7 @@ def baixar_video(url, apenas_audio=False, destino=".", is_playlist=False, on_pro
             ydl_opts = {
                 "outtmpl": os.path.join(destino, "%(title).40s.%(ext)s"),
                 "quiet": True,
-                "noplaylist": not is_playlist,
+                "noplaylist": True,
                 "merge_output_format": "mp4",
                 "postprocessors": [],
             }
@@ -52,10 +52,16 @@ def baixar_video(url, apenas_audio=False, destino=".", is_playlist=False, on_pro
                     "preferredquality": "192",
                 })
             else:
+                # Primeiro tenta bestvideo+bestaudio (com merge)
                 ydl_opts["format"] = "bestvideo+bestaudio/best"
-
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
+                try:
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([url])
+                except Exception as e:
+                    # Se falhar, tenta baixar como best direto (vídeo com áudio já embutido)
+                    ydl_opts["format"] = "best"
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([url])
 
         # Atualiza a data de modificação dos arquivos baixados
         for root, dirs, files in os.walk(destino):
