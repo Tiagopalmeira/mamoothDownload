@@ -18,9 +18,21 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🎉 Bem-vindo ao *Mammoth Down*!\n\n"
-        "Use:\n`/d <link>` para baixar vídeo ou playlist.\n\n"
-        "Exemplo:\n`/d https://youtube.com/watch?v=...`",
+        "🎉 *Bem-vindo ao Mammoth Down!*\n\n"
+        "⚠️ *Essa é uma versão de testes!* Ainda tem muita coisa pra ser implementada, mas você já pode brincar com o que está disponível.\n\n"
+        "📥 Use:\n"
+        "`/d <link>` para baixar vídeo ou playlist.\n\n"
+        "📌 *Exemplo:*\n"
+        "`/d https://youtube.com/watch?v=...`\n\n"
+        "🎬 *Vídeo:* No momento, funciona apenas com *YouTube*.\n\n"
+        "🎧 *Áudio:* Já testado com sucesso em:\n"
+        "- YouTube\n"
+        "- Instagram\n"
+        "- Facebook\n"
+        - Pinterest\n"
+        "- (e outras… 👀)\n\n"
+        "💡 *Tem uma ideia, sugestão ou bug pra reportar?* Me chama direto aqui mesmo! Estou coletando feedback pra deixar o Mammoth ainda mais brabo 🐘💪\n\n"
+        "_Valeu por testar!_ 🚀",
         parse_mode="Markdown"
     )
 
