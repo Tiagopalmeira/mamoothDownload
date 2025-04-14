@@ -12,39 +12,50 @@ def obter_titulo_video(url):
         return f"Erro ao obter título: {str(e)}"
 
 
-def baixar_video(url, apenas_audio=False, destino=".", is_playlist=False):
+def baixar_video(url, apenas_audio=False, destino=".", is_playlist=False, on_progress=None):
     try:
-        # Se for uma playlist, criar subpasta com o nome da playlist
         if is_playlist:
             with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
                 info = ydl.extract_info(url, download=False)
-                playlist_title = info.get('title', 'playlist')
-                destino = os.path.join(destino, playlist_title)
-                os.makedirs(destino, exist_ok=True)
+                entries = info.get('entries', [])
+                total = len(entries)
 
-        # Configurações do yt_dlp
-        ydl_opts = {
-            "outtmpl": os.path.join(destino, "%(title).40s.%(ext)s"),
-            "quiet": True,
-            "noplaylist": not is_playlist,
-            "merge_output_format": "mp4",
-            "postprocessors": [],
-        }
+                for i, entry in enumerate(entries, start=1):
+                    video_url = entry['webpage_url']
+                    titulo = entry.get('title', f"Vídeo {i}")
 
-        # Ajustar para apenas áudio se solicitado
-        if apenas_audio:
-            ydl_opts["format"] = "bestaudio/best"
-            ydl_opts["postprocessors"].append({
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-                "preferredquality": "192",
-            })
+                    if on_progress:
+                        on_progress(i, total, titulo)
+
+                    # Baixa item individual
+                    baixar_video(
+                        video_url,
+                        apenas_audio=apenas_audio,
+                        destino=destino,
+                        is_playlist=False  # baixar item por item
+                    )
+
         else:
-            ydl_opts["format"] = "bestvideo+bestaudio/best"
+            ydl_opts = {
+                "outtmpl": os.path.join(destino, "%(title).40s.%(ext)s"),
+                "quiet": True,
+                "noplaylist": not is_playlist,
+                "merge_output_format": "mp4",
+                "postprocessors": [],
+            }
 
-        # Download
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+            if apenas_audio:
+                ydl_opts["format"] = "bestaudio/best"
+                ydl_opts["postprocessors"].append({
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                    "preferredquality": "192",
+                })
+            else:
+                ydl_opts["format"] = "bestvideo+bestaudio/best"
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
 
         # Atualiza a data de modificação dos arquivos baixados
         for root, dirs, files in os.walk(destino):
