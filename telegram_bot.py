@@ -29,7 +29,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "- YouTube\n"
         "- Instagram\n"
         "- Facebook\n"
-        - Pinterest\n"
+        "- Pinterest\n"
         "- (e outras… 👀)\n\n"
         "💡 *Tem uma ideia, sugestão ou bug pra reportar?* Me chama direto aqui mesmo! Estou coletando feedback pra deixar o Mammoth ainda mais brabo 🐘💪\n\n"
         "_Valeu por testar!_ 🚀",
