@@ -1,3 +1,5 @@
+# app/telegram/telegram_bot.py
+
 from telegram import (
     Update, InlineKeyboardMarkup, InlineKeyboardButton, InputFile
 )
@@ -22,14 +24,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "`/d <link>` para baixar vídeo ou playlist.\n\n"
         "📌 *Exemplo:*\n"
         "`/d https://youtube.com/watch?v=...`\n\n"
-        "🎬 *Vídeo* e *Áudios:*.\n\n"
-        "🎧 * Já testado com sucesso em:\n"
+        "🎬🎧 *Vídeo:* e Áudio: \n\n"
+        " Já testado com sucesso em:\n"
         "- YouTube\n"
         "- Instagram\n"
         "- Facebook\n"
         "- Pinterest\n"
         "- (e outras… 👀)\n\n"
-        "💡 *Tem uma ideia, sugestão ou bug pra reportar?* Me chama aqui: @LogosTechn. Estou coletando feedback pra deixar o Mammoth ainda mais brabo 🐘💪\n\n"
+        "💡 *Tem uma ideia, sugestão ou bug pra reportar?* Me chama direto aqui mesmo! Estou coletando feedback pra deixar o Mammoth ainda mais brabo 🐘💪\n\n"
         "_Valeu por testar!_ 🚀",
         parse_mode="Markdown"
     )
