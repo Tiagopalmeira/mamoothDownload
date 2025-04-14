@@ -31,7 +31,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "- Facebook\n"
         "- Pinterest\n"
         "- (e outras… 👀)\n\n"
-        "💡 *Tem uma ideia, sugestão ou bug pra reportar?* Me chama direto aqui mesmo! Estou coletando feedback pra deixar o Mammoth ainda mais brabo 🐘💪\n\n"
+        "💡 *Tem uma ideia, sugestão ou bug pra reportar?* Me chama aqui: @LogosTechn. Estou coletando feedback pra deixar o Mammoth ainda mais brabo 🐘💪\n\n"
         "_Valeu por testar!_ 🚀",
         parse_mode="Markdown"
     )
