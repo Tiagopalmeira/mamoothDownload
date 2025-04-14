@@ -1,5 +1,3 @@
-# app/telegram/telegram_bot.py
-
 from telegram import (
     Update, InlineKeyboardMarkup, InlineKeyboardButton, InputFile
 )
