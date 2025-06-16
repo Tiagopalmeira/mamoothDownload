@@ -1,5 +1,7 @@
 # app/telegram/telegram_bot.py
 
+import json
+import os
 from telegram import (
     Update, InlineKeyboardMarkup, InlineKeyboardButton, InputFile
 )
@@ -9,14 +11,34 @@ from telegram.ext import (
 )
 from app.services.downloader import baixar_video, obter_titulo_video
 import tempfile
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
+USERS_FILE = "users.json"
+ADMIN_IDS = {123456789}  # <-- coloque seu chat_id aqui, para usar o /broadcast
+
+
+def salvar_usuario(chat_id: int):
+    users = set()
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r") as f:
+            try:
+                users = set(json.load(f))
+            except json.JSONDecodeError:
+                users = set()
+
+    if chat_id not in users:
+        users.add(chat_id)
+        with open(USERS_FILE, "w") as f:
+            json.dump(list(users), f)
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    salvar_usuario(chat_id)
+
     await update.message.reply_text(
         "🎉 *Bem-vindo ao Mammoth Down!*\n\n"
         "⚠️ *Essa é uma versão de testes!* Ainda tem muita coisa pra ser implementada, mas você já pode brincar com o que está disponível.\n\n"
@@ -37,6 +59,38 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_chat.id
+    if user_id not in ADMIN_IDS:
+        await update.message.reply_text("❌ Você não tem permissão para usar este comando.")
+        return
+
+    mensagem = " ".join(context.args)
+    if not mensagem:
+        await update.message.reply_text("Uso correto: /broadcast <mensagem>")
+        return
+
+    if not os.path.exists(USERS_FILE):
+        await update.message.reply_text("⚠️ Nenhum usuário registrado ainda.")
+        return
+
+    with open(USERS_FILE, "r") as f:
+        users = json.load(f)
+
+    enviados = 0
+    falhas = 0
+    for uid in users:
+        try:
+            await context.bot.send_message(chat_id=uid, text=mensagem)
+            enviados += 1
+        except Exception:
+            falhas += 1
+
+    await update.message.reply_text(f"Mensagem enviada para {enviados} usuários. Falhas: {falhas}")
+
+
+# (Seu código original download e handle_callback continuam iguais)
+
 async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text("❗ Envie um link. Ex: `/d https://youtube.com/...`", parse_mode="Markdown")
@@ -45,7 +99,6 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = context.args[0]
     is_playlist = 'playlist' in url.lower() or 'list=' in url.lower()
 
-    # Aviso prévio caso seja uma playlist
     if is_playlist:
         await update.message.reply_text("📂 Playlist detectada! Isso pode levar um tempinho para processar as informações... Segura aí! ⏳")
 
@@ -64,8 +117,7 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("📹 Baixar vídeo", callback_data="baixar_video")],
-        [InlineKeyboardButton("🎵 Apenas áudio (MP3)",
-                              callback_data="baixar_audio")],
+        [InlineKeyboardButton("🎵 Apenas áudio (MP3)", callback_data="baixar_audio")],
         [InlineKeyboardButton("❌ Cancelar", callback_data="cancelar_download")]
     ])
 
@@ -74,6 +126,7 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown",
         reply_markup=keyboard
     )
+
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -93,13 +146,11 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         with tempfile.TemporaryDirectory() as tmp_dir:
-            # função de progresso que envia updates pro usuário
             async def progresso(i, total, nome):
                 await query.message.reply_text(
                     f"📥 Baixando item {i} de {total}:\n*{nome}*", parse_mode="Markdown"
                 )
 
-            # wrapper pro asyncio poder rodar callback síncrono
             def on_progress(i, total, nome):
                 context.application.create_task(progresso(i, total, nome))
 
@@ -122,26 +173,27 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 tamanho = os.path.getsize(caminho)
 
                 if tamanho > 49 * 1024 * 1024:
-                    await query.message.reply_text(f"⚠️ '{nome}' excede 50MB e não pode ser enviado via Telegram.")
+                    await update.message.reply_text(f"⚠️ '{nome}' excede 50MB e não pode ser enviado via Telegram.")
                     continue
 
                 with open(caminho, "rb") as f:
-                    await query.message.reply_document(
+                    await update.message.reply_document(
                         document=InputFile(f, filename=nome),
                         caption=f"✅ *{nome}* enviado com sucesso!",
                         parse_mode="Markdown"
                     )
 
-            await query.message.reply_text("✅ Todos os arquivos foram enviados com sucesso!")
+            await update.message.reply_text("✅ Todos os arquivos foram enviados com sucesso!")
 
     except Exception as e:
-        await query.message.reply_text(f"❌ Erro no download:\n`{str(e)}`", parse_mode="Markdown")
+        await update.message.reply_text(f"❌ Erro no download:\n`{str(e)}`", parse_mode="Markdown")
 
 
 def iniciar_bot():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("d", download))
+    app.add_handler(CommandHandler("broadcast", broadcast))  # novo handler
     app.add_handler(CallbackQueryHandler(handle_callback))
     print("🤖 Bot do Mammoth Down está rodando!")
     app.run_polling()
